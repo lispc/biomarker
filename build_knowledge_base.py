@@ -18,8 +18,10 @@ def is_file_exists_and_not_empty(filepath: str) -> bool:
 
 def build_filename(index: int, name_en: str, name_cn: str, category: str, output_dir: str) -> str:
     """构建文件名路径，用于检查文件是否存在"""
-    safe_name_en = name_en.replace("/", "-").replace("\\", "-").replace("|", "-")
-    safe_name_cn = name_cn.replace("/", "-").replace("\\", "-").replace("|", "-")
+    # 与 query.py 中的 buildFilename 逻辑保持一致
+    # 只替换 / 和 \，保留 | 作为分隔符
+    safe_name_en = name_en.replace("/", "-").replace("\\", "-")
+    safe_name_cn = name_cn.replace("/", "-").replace("\\", "-")
     safe_category = category.replace("/", "-").replace("\\", "-").strip()
     filename = f"{index:03d}|{safe_name_en}|{safe_name_cn}.md"
     return os.path.join(output_dir, safe_category, filename)
@@ -44,8 +46,8 @@ def main():
     parser.add_argument(
         "--output-dir",
         type=str,
-        default="assets",
-        help="输出目录（默认: assets）",
+        default="docs/assets",
+        help="输出目录（默认: docs/assets）",
     )
     parser.add_argument(
         "--start",

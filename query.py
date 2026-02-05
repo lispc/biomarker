@@ -17,7 +17,7 @@ def create_openai_client() -> OpenAI:
     )
 
 
-def query_biomarker(index: int, name_en: str, name_cn: str, category: str, output_dir: str = "assets") -> str:
+def query_biomarker(index: int, name_en: str, name_cn: str, category: str, output_dir: str = "docs/assets") -> str:
     """
     查询单个生物标志物，生成说明文档并保存为 markdown 文件。
     
@@ -36,7 +36,7 @@ def query_biomarker(index: int, name_en: str, name_cn: str, category: str, outpu
     client = create_openai_client()
     
     # 构建查询文本，同时使用英文名和中文名
-    text = f"介绍一下 '{name_en}'（{name_cn}）这个体检指标的涵义，以及常见的异常，异常对应的可能原因，异常对应的建议后续处理（如调整生活方式，进一步详细检查等）。使用 markdown 输出"
+    text = f"介绍一下 '{name_en}'（{name_cn}）这个体检指标的涵义，以及常见的异常，异常对应的可能原因，异常对应的建议后续处理（如调整生活方式，进一步详细检查等）。" #使用 markdown 输出"
     
     # 构建文件名：003|英文名|中文名.md
     # 清理文件名中的非法字符
