@@ -1,4 +1,3 @@
-```markdown
 # Triglyceride / HDL Cholesterol (Molar Ratio) 指标解读
 
 ## 1. 指标定义与涵义
