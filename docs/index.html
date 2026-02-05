@@ -392,7 +392,15 @@
                 if (!response.ok) {
                     throw new Error('文档尚未生成');
                 }
-                const mdText = await response.text();
+                let mdText = await response.text();
+                
+                // 处理嵌套的 markdown 代码块
+                // 有些 LLM 输出会包裹在 ```markdown ... ``` 中
+                const markdownCodeBlockRegex = /^```markdown\s*\n?([\s\S]*?)\n?```\s*$/;
+                const match = mdText.match(markdownCodeBlockRegex);
+                if (match) {
+                    mdText = match[1].trim();
+                }
                 
                 contentDiv.innerHTML = `
                     <div class="content-header">
