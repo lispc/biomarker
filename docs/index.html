@@ -384,8 +384,17 @@
             
             const filename = buildFilename(bm.index, bm.name_en, bm.name_cn);
             const categoryDir = (bm.category || 'Uncategorized').trim();
-            // GitHub Pages 路径处理 - 空格变成 %20，& 变成 %26 等
-            const mdUrl = `${ASSETS_DIR}/${encodeURIComponent(categoryDir)}/${encodeURIComponent(filename)}`;
+            // GitHub Pages 路径处理
+            // 需要编码: 空格 -> %20, & -> %26, 中文字符, 特殊符号
+            // 但保留 URL 中的合法字符如 | (竖线)
+            const encodePath = (str) => {
+                return encodeURIComponent(str)
+                    .replace(/%7C/g, '|')  // 还原竖线
+                    .replace(/%28/g, '(')  // 还原左括号
+                    .replace(/%29/g, ')')  // 还原右括号
+                    .replace(/%2C/g, ','); // 还原逗号
+            };
+            const mdUrl = `${ASSETS_DIR}/${encodePath(categoryDir)}/${encodePath(filename)}`;
             
             try {
                 const response = await fetch(mdUrl);
