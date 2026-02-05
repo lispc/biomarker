@@ -339,8 +339,8 @@
             categoryOrder.forEach(cat => {
                 const items = categories[cat].filter(bm => {
                     if (!filter) return true;
-                    return (bm.Biomarkers_en || '').toLowerCase().includes(filterLower) ||
-                           (bm.Biomarkers_cn || '').toLowerCase().includes(filterLower);
+                    return (bm.name_en || '').toLowerCase().includes(filterLower) ||
+                           (bm.name_cn || '').toLowerCase().includes(filterLower);
                 });
                 
                 if (items.length === 0) return;
@@ -383,8 +383,8 @@
             contentDiv.innerHTML = '<div class="loading">加载中...</div>';
             
             const filename = buildFilename(bm.index, bm.name_en, bm.name_cn);
-            const categoryDir = (bm.category || 'Uncategorized').replace(/[\/\\]/g, '-').trim();
-            // GitHub Pages 路径处理
+            const categoryDir = (bm.category || 'Uncategorized').trim();
+            // GitHub Pages 路径处理 - 空格变成 %20，& 变成 %26 等
             const mdUrl = `${ASSETS_DIR}/${encodeURIComponent(categoryDir)}/${encodeURIComponent(filename)}`;
             
             try {
