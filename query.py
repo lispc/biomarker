@@ -62,14 +62,16 @@ def query_biomarker(index: int, name_en: str, name_cn: str, category: str, outpu
         stream=True,
     )
     
-    with open(filepath, "w") as w:
-        for chunk in stream:
-            delta = chunk.choices[0].delta
-            if delta.content:
-                w.write(delta.content)
-                print(delta.content, end="")
+    content = ""
+    for chunk in stream:
+        delta = chunk.choices[0].delta
+        if delta.content:
+            content += delta.content
     
-    return filepath
+    with open(filepath, "w") as f:
+        f.write(content)
+    
+    return filepath, len(content)
 
 
 if __name__ == "__main__":

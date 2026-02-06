@@ -35,8 +35,8 @@
 ```python
 from query import query_biomarker
 
-# 生成单个文档
-query_biomarker(
+# 生成单个文档，返回 (filepath, content_length)
+filepath, length = query_biomarker(
     index=1,
     name_en="Non-HDL Cholesterol",
     name_cn="Non-HDL 胆固醇",
@@ -53,12 +53,14 @@ query_biomarker(
 - `|` 保留作为分隔符
 - 中文保持原样
 
+**注意**：`query_biomarker` 不再输出到 stdout，仅写入文件并返回内容长度
+
 ### build_knowledge_base.py
 
-批量生成所有文档，支持断点续传。
+批量生成所有文档，支持断点续传和并行处理。
 
 ```bash
-# 生成所有未完成的文档
+# 生成所有未完成的文档（默认 4 线程并行）
 python build_knowledge_base.py
 
 # 只生成前 20 个
@@ -69,12 +71,20 @@ python build_knowledge_base.py --start 100
 
 # 指定输出目录
 python build_knowledge_base.py --output-dir docs/assets
+
+# 指定并行线程数（默认 4）
+python build_knowledge_base.py --workers 8
 ```
 
 **断点续传逻辑**：
 - 检查文件是否存在且非空
 - 已存在的文件自动跳过
 - 失败会打印错误但继续处理下一个
+
+**并行处理**：
+- 默认使用 4 个线程并行处理
+- 通过 `--workers` 参数可调整并行度
+- 每个任务完成后输出响应文本长度
 
 ### docs/index.html
 

@@ -2,12 +2,14 @@
 """
 构建生物标志物知识库
 读取 marker.csv，为每个生物标志物生成说明文档
+支持并行处理
 """
 
 import argparse
 import csv
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from query import query_biomarker
 
 
@@ -25,6 +27,47 @@ def build_filename(index: int, name_en: str, name_cn: str, category: str, output
     safe_category = category.replace("/", "-").replace("\\", "-").strip()
     filename = f"{index:03d}|{safe_name_en}|{safe_name_cn}.md"
     return os.path.join(output_dir, safe_category, filename)
+
+
+def process_marker(marker: dict, output_dir: str) -> dict:
+    """
+    处理单个生物标志物
+    
+    Returns:
+        dict: 包含处理结果的字典
+    """
+    index = marker["index"]
+    name_en = marker["name_en"]
+    name_cn = marker["name_cn"]
+    category = marker["category"]
+    
+    try:
+        filepath, content_length = query_biomarker(
+            index=index,
+            name_en=name_en,
+            name_cn=name_cn,
+            category=category,
+            output_dir=output_dir,
+        )
+        return {
+            "success": True,
+            "index": index,
+            "name_en": name_en,
+            "name_cn": name_cn,
+            "filepath": filepath,
+            "content_length": content_length,
+            "error": None,
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "index": index,
+            "name_en": name_en,
+            "name_cn": name_cn,
+            "filepath": None,
+            "content_length": 0,
+            "error": str(e),
+        }
 
 
 def main():
@@ -54,6 +97,12 @@ def main():
         type=int,
         default=1,
         help="起始行号（从1开始，默认: 1）",
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=4,
+        help="并行工作线程数（默认: 4）",
     )
     
     args = parser.parse_args()
@@ -98,27 +147,33 @@ def main():
         to_process = to_process[:args.limit]
         print(f"根据 --limit={args.limit}，实际将处理: {len(to_process)} 个")
     
-    # 处理每个标志物
+    # 并行处理
     success_count = 0
     fail_count = 0
+    completed = 0
+    total = len(to_process)
     
-    for i, marker in enumerate(to_process, start=1):
-        print(f"\n[{i}/{len(to_process)}] 处理: {marker['name_en']} ({marker['name_cn']}) - 行号 {marker['index']}")
+    print(f"\n使用 {args.workers} 个线程并行处理...")
+    print("=" * 50)
+    
+    with ThreadPoolExecutor(max_workers=args.workers) as executor:
+        # 提交所有任务
+        future_to_marker = {
+            executor.submit(process_marker, marker, args.output_dir): marker
+            for marker in to_process
+        }
         
-        try:
-            filepath = query_biomarker(
-                index=marker["index"],
-                name_en=marker["name_en"],
-                name_cn=marker["name_cn"],
-                category=marker["category"],
-                output_dir=args.output_dir,
-            )
-            print(f"    ✓ 已保存到: {filepath}")
-            success_count += 1
-        except Exception as e:
-            print(f"    ✗ 处理失败: {e}")
-            fail_count += 1
-            # 继续处理下一个
+        # 处理完成的任务
+        for future in as_completed(future_to_marker):
+            result = future.result()
+            completed += 1
+            
+            if result["success"]:
+                success_count += 1
+                print(f"[{completed}/{total}] ✓ {result['name_en']} ({result['name_cn']}) - {result['content_length']} chars")
+            else:
+                fail_count += 1
+                print(f"[{completed}/{total}] ✗ {result['name_en']} ({result['name_cn']}) - 失败: {result['error']}")
     
     print(f"\n{'='*50}")
     print(f"处理完成!")
