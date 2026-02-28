@@ -140,6 +140,117 @@
             background: #fff;
         }
         
+        /* 移动端菜单按钮 */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1000;
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* 移动端遮罩层 */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 998;
+        }
+        
+        /* 响应式设计 - 移动端 */
+        @media (max-width: 768px) {
+            body {
+                overflow: auto;
+            }
+            
+            .container {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+            }
+            
+            .mobile-menu-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 280px;
+                height: 100vh;
+                z-index: 999;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .sidebar-overlay.open {
+                display: block;
+            }
+            
+            .content {
+                padding: 70px 20px 30px;
+                min-height: 100vh;
+            }
+            
+            .content-header h2 {
+                font-size: 22px;
+            }
+            
+            .content-header .subtitle {
+                font-size: 14px;
+            }
+            
+            .content-body {
+                font-size: 15px;
+            }
+            
+            .content-body h1 {
+                font-size: 20px;
+            }
+            
+            .content-body h2 {
+                font-size: 18px;
+            }
+            
+            .content-body h3 {
+                font-size: 16px;
+            }
+            
+            .content-body table {
+                font-size: 13px;
+            }
+            
+            .content-body th, .content-body td {
+                padding: 8px;
+            }
+            
+            /* 水平滚动的表格容器 */
+            .content-body table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
+        
         .content-header {
             margin-bottom: 30px;
             padding-bottom: 20px;
@@ -263,8 +374,11 @@
     </style>
 </head>
 <body>
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
     <div class="container">
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h1>🔬 Biomarker KB</h1>
                 <input type="text" class="search-box" placeholder="搜索指标..." id="searchBox">
@@ -363,7 +477,10 @@
                         <span class="item-en">${bm.name_en}</span>
                         <span class="item-cn">${bm.name_cn}</span>
                     `;
-                    item.onclick = () => loadBiomarker(bm, item);
+                    item.onclick = () => {
+                        loadBiomarker(bm, item);
+                        handleMobileItemClick();
+                    };
                     itemsDiv.appendChild(item);
                 });
                 
@@ -438,6 +555,47 @@
         // 搜索功能
         document.getElementById('searchBox').addEventListener('input', (e) => {
             renderSidebar(e.target.value);
+        });
+        
+        // 移动端菜单切换
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        
+        function openSidebar() {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            if (sidebar.classList.contains('open')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        });
+        
+        sidebarOverlay.addEventListener('click', closeSidebar);
+        
+        // 移动端点击菜单项后自动关闭侧边栏
+        function handleMobileItemClick() {
+            if (window.innerWidth <= 768) {
+                closeSidebar();
+            }
+        }
+        
+        // 监听窗口大小变化，重置移动端状态
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                closeSidebar();
+            }
         });
         
         // 初始化
