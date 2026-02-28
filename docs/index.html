@@ -600,6 +600,11 @@
         
         // 初始化
         loadData();
+        
+        // 移动端首次进入自动展开侧边栏
+        if (window.innerWidth <= 768) {
+            openSidebar();
+        }
     </script>
 </body>
 </html>
